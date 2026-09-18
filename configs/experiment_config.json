@@ -1,0 +1,62 @@
+{
+  "dataset": {
+    "name": "CORDIS Horizon 2020 projects",
+    "raw_project_csv": "../CORDIS - EU research projects under Horizon 2020 (2014-2020)/Publications Office/9-cordis-h2020projects-csv/project.csv",
+    "csv_sep": ";",
+    "csv_quotechar": "\"",
+    "on_bad_lines": "skip"
+  },
+  "retrieval_task": {
+    "query_field": "objective",
+    "label_field": "subCall",
+    "description_field": "funding_call_description",
+    "description_must_be_valid": true,
+    "minimum_projects_per_call": 5,
+    "candidate_pool": "all eligible subCall labels after valid funding_call_description filtering",
+    "leave_one_out": true
+  },
+  "sampling": {
+    "sample_size": 200,
+    "random_seed": 42,
+    "sample_output": "data/samples/eval_sample_200_seed42.csv",
+    "dev_sample_size": 200,
+    "dev_random_seed": 43,
+    "frozen_split_output": "data/frozen/rq2_v1_seed42_description_filtered"
+  },
+  "metrics": [
+    "Recall@1",
+    "Recall@5",
+    "MRR",
+    "NDCG@5"
+  ],
+  "research_questions": {
+    "rq1_dimension_ablation": {
+      "output_dir": "results/rq1_dimension_ablation",
+      "conditions": [
+        "thematic_only",
+        "thematic_plus_technical",
+        "thematic_plus_budget_duration",
+        "all_dimensions"
+      ]
+    },
+    "rq2_architecture": {
+      "output_dir": "results/rq2_architecture",
+      "conditions": [
+        "sequential_pipeline",
+        "self_correction",
+        "multi_agent_debate_aggregation"
+      ],
+      "primary_condition": "self_correction"
+    },
+    "rq3_stability": {
+      "output_dir": "results/rq3_stability",
+      "repeat_runs": 10,
+      "stability_metrics": [
+        "metric_mean_std",
+        "top1_agreement",
+        "top5_jaccard",
+        "true_rank_std"
+      ]
+    }
+  }
+}

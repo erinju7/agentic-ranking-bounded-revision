@@ -1,0 +1,21 @@
+# secrets — never commit real keys
+.env
+*.key
+
+# proprietary / non-public data (Study 2 partnering dataset, expert labels)
+data/james_validation/
+data/**/docs*.json
+gold_standard_*.csv
+**/annotation_sheet*
+**/study2_annotation/
+
+# large / regenerable data and results
+data/
+results/
+runs/
+logs/
+
+# python / OS junk
+__pycache__/
+*.pyc
+.DS_Store
