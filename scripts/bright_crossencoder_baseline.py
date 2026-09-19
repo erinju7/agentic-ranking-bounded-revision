@@ -6,12 +6,15 @@ from pathlib import Path
 from sentence_transformers import CrossEncoder
 ROOT = Path(__file__).resolve().parents[1]
 MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+def capq(model, q, n=200):
+    ids = model.tokenizer(q, add_special_tokens=False)["input_ids"][:n]
+    return model.tokenizer.decode(ids)
 def run(model, domain):
     P = json.loads((ROOT / "data" / "bright_hardpool" / domain / "pools.json").read_text())
     hit1 = 0; rr = 0.0; n = 0
     for qid, pl in P.items():
         gold = set(pl["gold_aliases"]); items = list(pl["alias_to_text"].items())
-        pairs = [(pl["query"], t[:2000]) for _, t in items]
+        pairs = [(capq(model, pl["query"]), t) for _, t in items]
         scores = model.predict(pairs, batch_size=64, show_progress_bar=False)
         ranked = [a for (a, _), s in sorted(zip(items, scores), key=lambda x: -x[1])]
         n += 1
