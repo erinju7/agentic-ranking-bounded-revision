@@ -20,10 +20,14 @@ for _e in (ROOT/".env", ROOT.parent/".env"):
             _l = _l.strip()
             if _l and not _l.startswith("#") and "=" in _l:
                 _k, _v = _l.split("=", 1); os.environ.setdefault(_k.strip(), _v.strip().strip('"').strip("'"))
-DOCS = json.loads((ROOT/"data"/"james_validation"/os.environ.get("DOCS_FILE","docs.json")).read_text())
+DOCS = json.loads((ROOT/"data"/"james_validation"/os.environ.get("DOCS_FILE","docs_full.json")).read_text())
 OUT = ROOT/"results"/"james_validation"; OUT.mkdir(parents=True, exist_ok=True)
 MODEL = "gemini-flash-latest"
-PROP_CAP, CALL_CAP = int(os.environ.get("PROP_CAP","7000")), int(os.environ.get("CALL_CAP","5000"))
+# Character caps on proposal/call text. Default 0 -> no truncation: the reported
+# configuration sends the complete document text (longest proposal ~28k chars,
+# longest call ~41k). Set a positive PROP_CAP / CALL_CAP to truncate.
+PROP_CAP = int(os.environ.get("PROP_CAP", "0")) or 10**9
+CALL_CAP = int(os.environ.get("CALL_CAP", "0")) or 10**9
 
 
 class RawClaudeJSON:

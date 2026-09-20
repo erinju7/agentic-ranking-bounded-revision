@@ -1,7 +1,10 @@
 # Experimental Freeze — BRIGH​T Biology Reranking / Agentic Architecture Study
 
-*Frozen on the `exp2-architecture` branch. No further tuning. This file is the single
-source of truth for reproduction.*
+*Originally frozen on the `exp2-architecture` branch. Sections 1--4 (dataset, query set,
+candidate pool, retriever) document the frozen, model-independent inputs shared by every run
+and remain authoritative. For the reported model configuration and the final pipeline,
+`README.md` and the dissertation are authoritative; where this file's original backend notes
+differ they are superseded (see Section 5).*
 
 ## 0. One-line summary
 Reranking a fixed 100-document candidate pool for 97 BRIGHT-biology reasoning queries with
@@ -53,13 +56,17 @@ For each query, in the shuffled sample order:
   ranking is done by the LLM systems over the frozen pool.
 
 ## 5. Backend model
-- **Model:** `gemini-flash-latest` (Google), alias recorded (not pinned).
-- **Temperature:** `0.0`. **max_output_tokens:** `32768`. **max_retries:** `6`.
-- **Pricing used for cost accounting:** $0.30 / 1M input tokens, $2.50 / 1M output tokens
-  (`MODEL_PRICING_USD_PER_MTOK["gemini-flash-latest"]`). Cost computed from real
-  `usage_metadata` (`prompt_token_count`, `candidates_token_count`).
-- No Claude/Anthropic model is used as a backend in this study (Claude is the assistant, not
-  the ranker).
+- **Reported main backbone:** `claude-haiku-4-5-20251001` (Anthropic), a pinned dated
+  snapshot, temperature `0.0`. This is the single-pass and coordination backbone for the
+  four-domain A--D comparison, the component experiments and the applied evaluation, and is the
+  configuration reported in the dissertation (see `README.md`).
+- **Cross-model panel:** additional closed- and open-weight backbones are run for the Biology
+  A/D panel and the applied panel; the dissertation lists the full roster and per-backbone
+  decoding settings.
+- **Earlier exploratory runs** used `gemini-flash-latest` (Google, alias recorded, not pinned).
+  Those runs predate the pinned-Haiku configuration and are **not** the reported results; the
+  Gemini-specific pricing and token settings previously noted here applied only to them.
+- **Cost accounting:** computed from real provider token usage at each backbone's own pricing.
 
 ## 6. Seeds
 | Purpose | Seed |

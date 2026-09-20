@@ -1,6 +1,8 @@
 """Cross-model panel runner: A and D only, BRIGHT biology, pool 100 (same task as the primary),
 k replicates. For every query records whether A's ranking needed deterministic REPAIR (did not
-cover the full pool = format failure) and whether any arm CALL FAILED (exhausted retries). Reports
+cover the full pool = format failure) and whether any arm CALL FAILED (exhausted retries). A query
+whose A or D call fails has no usable response and is excluded from the paired comparison
+(complete-case); it is tallied in call-fail-count but not scored via a fallback ranking. Reports
 A/D R@1, D-vs-A fix/break/McNemar, plus repair-count and call-fail-count and the decoding provenance
 (temperature settable? resolved version) -- the columns the panel table needs so nothing is hidden.
 
@@ -44,22 +46,27 @@ def run_rep(model, pool, items, rep, outdir):
         body = [{"id": a, "text": a2t[a]} for a in order]
         oa, aok = rcall(p_rerank_plain(q, body), "rank")
         if not aok:
-            callfail += 1; A = list(order); a_repaired = True
-        else:
-            ids = [str(x.get("id") if isinstance(x, dict) else x) for x in oa.get("ranked_ids", [])]
-            a_repaired = len({x for x in ids if x in set(order)}) < len(order)
-            if a_repaired:
-                repair += 1
-            A = rank_from_ids(oa.get("ranked_ids", []), order)
+            # Complete-case: a query with no usable A response is excluded from the paired
+            # comparison (counted only in call_fail_count), never scored via a fallback ranking.
+            callfail += 1
+            print(f"[{model} rep{rep} {qi}/{len(items)}] {qid} A_FAIL -> excluded", flush=True)
+            continue
+        ids = [str(x.get("id") if isinstance(x, dict) else x) for x in oa.get("ranked_ids", [])]
+        a_repaired = len({x for x in ids if x in set(order)}) < len(order)
+        if a_repaired:
+            repair += 1
+        A = rank_from_ids(oa.get("ranked_ids", []), order)
         h1, _ = rcall(p_a1(q), "any"); h2, _ = rcall(p_a2(q), "any")
         od, dok = rcall(p_a3_anchor(q, h1, h2, body), "dec")
         if not dok:
-            callfail += 1; D = list(A)
-        else:
-            dec = od.get("decision") or "surface_sufficient"
-            prom = [str(x.get("id") if isinstance(x, dict) else x) for x in (od.get("promote_ids") or [])]
-            prom = [a for a in prom if a in a2t][:2]
-            D = list(A) if (dec == "surface_sufficient" or not prom) else prom + [a for a in A if a not in prom]
+            # Complete-case: exclude queries with no usable D response as well.
+            callfail += 1
+            print(f"[{model} rep{rep} {qi}/{len(items)}] {qid} D_FAIL -> excluded", flush=True)
+            continue
+        dec = od.get("decision") or "surface_sufficient"
+        prom = [str(x.get("id") if isinstance(x, dict) else x) for x in (od.get("promote_ids") or [])]
+        prom = [a for a in prom if a in a2t][:2]
+        D = list(A) if (dec == "surface_sufficient" or not prom) else prom + [a for a in A if a not in prom]
         per.append({"id": qid, "A_top1": A[0] in goldset, "D_top1": D[0] in goldset,
                     "A_ok": aok, "D_ok": dok, "A_repaired": a_repaired})
         print(f"[{model} rep{rep} {qi}/{len(items)}] {qid} A_ok={aok} D_ok={dok} repaired={a_repaired}", flush=True)
