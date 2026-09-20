@@ -18,7 +18,7 @@ def wkappa(pairs):
     return 1-po/pe if pe else 0.0
 ROOT=Path(__file__).resolve().parents[1]
 gold={(r["proposal_id"],r["call_id"]):norm(r["label"]) for r in csv.DictReader(open(Path(os.environ.get("STUDY2_GOLD_CSV", ROOT/"data"/"study2_validation"/"expert_labels.csv"))))}
-ne={(r["proposal_id"],r["call_id"]):norm(list(r.values())[-1]) for r in csv.DictReader(open(ROOT/"analysis/study2_annotation/annotation_sheet_FILLED.csv"))}
+ne={(r["proposal_id"],r["call_id"]):norm(list(r.values())[-1]) for r in csv.DictReader(open(Path(os.environ.get("STUDY2_ANNOTATION_CSV", ROOT/"analysis/study2_annotation/annotation_sheet_FILLED.csv"))))}
 res=json.loads((ROOT/"results/study2_validation/listwise/claude-haiku-4-5-20251001_rubric/listwise_results.json").read_text())
 Asys={(rr["proposal"],c):norm(g) for rr in res for c,g in rr["A"]["grades"].items()}
 tri=[(gold[k],ne[k],Asys[k]) for k in gold if k in ne and k in Asys]

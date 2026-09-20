@@ -5,9 +5,10 @@ ceiling). A single-pass listwise; B concept-guided listwise; D anchor-and-edit (
 promotes <=cap ids to the FRONT of A's ranking, else preserves A). D coordinator runs once; the
 cap is applied mechanically at cap=1 (primary) and cap=2 (sensitivity). Each variant emits a
 ranking + per-call relevance grade; grades feed per-call kappa, the expert gold feeds nDCG.
-Reuses the per-proposal concept/surface/latent prompts from study2_match.py. Backbone: same
-gemini-flash-latest as the existing Study-2 runs and the Study-1 reference. LLM grades are NOT
-gold; expert labels remain the reference.
+Reuses the per-proposal concept/surface/latent prompts from study2_match.py. Backbone is
+selected at runtime via the CLI --model flag (the reported runs use claude-haiku-4-5-20251001;
+gemini-flash-latest was an earlier exploratory backbone). LLM grades are NOT gold; expert
+labels remain the reference.
 """
 from __future__ import annotations
 import os, json, random, argparse

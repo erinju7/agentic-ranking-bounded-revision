@@ -14,9 +14,12 @@ import os, json, csv, math, collections
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-LW = ROOT / "results" / "study2_validation" / "listwise" / "listwise_results.json"
+# Model/tag subdirectory of the run to score. Defaults to the reported main run
+# (run_study2_rubric.sh writes there); override with LW_DIR for other backbones.
+LWDIR = ROOT / "results" / "study2_validation" / "listwise" / os.environ.get("LW_DIR", "claude-haiku-4-5-20251001_rubric")
+LW = LWDIR / "listwise_results.json"
 GOLD = Path(os.environ.get("STUDY2_GOLD_CSV", ROOT/"data"/"study2_validation"/"expert_labels.csv"))
-OUT = ROOT / "results" / "study2_validation" / "listwise" / "scores_vs_expert.json"
+OUT = LWDIR / "scores_vs_expert.json"
 
 GRADE_VAL = {"match": 2, "borderline": 1, "no_match": 0}
 CATS = ["no_match", "borderline", "match"]; IDX = {c: i for i, c in enumerate(CATS)}

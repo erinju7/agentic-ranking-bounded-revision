@@ -89,7 +89,9 @@ change the **unit of reasoning**: from *one hypothesis imposed on the reranker* 
 
 ## 3. Input / Output schemas (concrete, frozen contract)
 
-All agents: `gemini-flash-latest`, temperature 0, JSON-only output. Candidate documents
+All agents: model selected at runtime via the CLI `--model` flag (the reported runs use
+`claude-haiku-4-5-20251001`; `gemini-flash-latest` was an earlier exploratory backbone),
+temperature 0, JSON-only output. Candidate documents
 are presented with **opaque aliases** (`D00…`) and the same `DOC_CAP=600` truncation as
 the baseline, so no agent sees ids, labels, or scores.
 
