@@ -1,20 +1,20 @@
-"""Study 2 LISTWISE reranking (A/B/D), James-aligned redesign (see study2_listwise_redesign_spec.md).
+"""Study 2 LISTWISE reranking (A/B/D), expert-aligned redesign (see study2_listwise_redesign_spec.md).
 
 Per proposal, rank its FULL set of 6 candidate calls (no first-stage truncation -> no recall
 ceiling). A single-pass listwise; B concept-guided listwise; D anchor-and-edit (coordinator
 promotes <=cap ids to the FRONT of A's ranking, else preserves A). D coordinator runs once; the
 cap is applied mechanically at cap=1 (primary) and cap=2 (sensitivity). Each variant emits a
-ranking + per-call relevance grade; grades feed per-call kappa, the James gold feeds nDCG.
-Reuses the per-proposal concept/surface/latent prompts from james_match.py. Backbone: same
+ranking + per-call relevance grade; grades feed per-call kappa, the expert gold feeds nDCG.
+Reuses the per-proposal concept/surface/latent prompts from study2_match.py. Backbone: same
 gemini-flash-latest as the existing Study-2 runs and the Study-1 reference. LLM grades are NOT
-gold; James labels remain authoritative.
+gold; expert labels remain the reference.
 """
 from __future__ import annotations
 import os, json, random, argparse
 from datetime import datetime, timezone
 from pathlib import Path
-import james_match as _jm
-from james_match import p_concept, p_surface, p_latent, call, DOCS, ROOT, MODEL, PROP_CAP, CALL_CAP, client_for
+import study2_match as _jm
+from study2_match import p_concept, p_surface, p_latent, call, DOCS, ROOT, MODEL, PROP_CAP, CALL_CAP, client_for
 
 
 def load_env():
@@ -26,7 +26,7 @@ def load_env():
                     k, v = line.split("=", 1)
                     os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
 
-OUT = ROOT / "results" / "james_validation" / "listwise"; OUT.mkdir(parents=True, exist_ok=True)
+OUT = ROOT / "results" / "study2_validation" / "listwise"; OUT.mkdir(parents=True, exist_ok=True)
 GRADES = ("match", "borderline", "no_match")
 SEED = 42
 
@@ -192,7 +192,7 @@ def main():
                "temperature": getattr(client, "temperature", None),
                "run_utc": datetime.now(timezone.utc).isoformat(), "seed": seed,
                "promote_cap_primary": 1, "promote_cap_sensitivity": 2,
-               "note": "LLM grades are NOT gold; James labels authoritative. D grades inherit A (positional edit).",
+               "note": "LLM grades are NOT gold; expert labels are the reference. D grades inherit A (positional edit).",
                "cost": {s: {"calls": meter[s]["calls"], "cost_usd": round(meter[s]["cost"], 4),
                             "lat_s": round(meter[s]["lat"], 1), "tok_in": meter[s]["in"], "tok_out": meter[s]["out"]}
                         for s in ["A", "B", "C", "D"]}}

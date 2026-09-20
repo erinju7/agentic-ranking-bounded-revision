@@ -4,7 +4,7 @@
 hypotheses, anchor-and-edit verification) transfer across tasks, and which task properties
 determine when they help? Two studies instantiate the **same control-flow topology** (A/B/C/D)
 with domain-reimplemented prompts: Study 1 = BRIGHT reasoning-intensive document reranking;
-Study 2 = funding proposal→call matching (listwise), evaluated against James's expert labels.
+Study 2 = funding proposal→call matching (listwise), evaluated against the expert's labels.
 Backbone held fixed at `gemini-flash-latest` in both, so RQ3 compares task, not model+task.
 
 ## The pivotal task property: single-pass headroom
@@ -30,7 +30,7 @@ can only help where the baseline has room to improve.
 
 **Study 2 — funding listwise (3 seeds [7,42,123], nDCG n=5, rank n=4):**
 
-| Variant | nDCG@1 | R@1 | per-call κ vs James | Behaviour |
+| Variant | nDCG@1 | R@1 | per-call κ vs the expert | Behaviour |
 |---|---|---|---|---|
 | A | 0.93±0.05 | 0.83±0.12 | 0.66±0.02 | baseline |
 | B | 0.90±0.00 | 0.75±0.00 | 0.66±0.01 | marginally below A (overlapping) |

@@ -1,6 +1,6 @@
-"""Aggregate Study 2 listwise scores across seeds (mean +/- sd) vs James gold.
+"""Aggregate Study 2 listwise scores across seeds (mean +/- sd) vs expert gold.
 
-Reads seed dirs: results/james_validation/listwise/ (seed 42),
+Reads seed dirs: results/study2_validation/listwise/ (seed 42),
 listwise/seed_7/, listwise/seed_123/. Reuses score_variant from score_study2_listwise.
 Reports mean +/- sd per variant per metric so the tie / B-below-A pattern is not a
 single-shuffle artefact.
@@ -11,7 +11,7 @@ from pathlib import Path
 from score_study2_listwise import score_variant, load_gold, pairwise_kappa
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE = ROOT / "results" / "james_validation" / "listwise" / os.environ.get("LW_DIR", "claude-haiku-4-5-20251001")
+BASE = ROOT / "results" / "study2_validation" / "listwise" / os.environ.get("LW_DIR", "claude-haiku-4-5-20251001")
 SEEDS = [42] + list(range(43, 52))   # 10 independent replicates (default seed 42 + 43..51)
 VARIANTS = ["A", "B", "C", "D_cap1", "D_cap2"]
 METRICS = ["nDCG@1", "nDCG@3", "nDCG@6", "Recall@1", "MRR", "per_call_weighted_kappa"]
@@ -33,7 +33,7 @@ def main():
         results = json.loads(f.read_text())
         per_seed[s] = {v: score_variant(results, v, gold) for v in VARIANTS}
     seeds = sorted(per_seed)
-    print(f"Study 2 listwise vs James — {len(seeds)} seeds {seeds} (nDCG n=5, rank n=4)\n")
+    print(f"Study 2 listwise vs the expert — {len(seeds)} seeds {seeds} (nDCG n=5, rank n=4)\n")
 
     agg = {v: {} for v in VARIANTS}
     hdr = f"{'variant':9s}" + "".join(f"{m:>16s}" for m in METRICS)
@@ -58,7 +58,7 @@ def main():
             row.append(f"{s}:{'FP' if (m and m['false_positive']) else 'ok'}")
         print(f"  {v:9s} " + "  ".join(row))
 
-    out = BASE / "scores_vs_james_multiseed.json"
+    out = BASE / "scores_vs_expert_multiseed.json"
     out.write_text(json.dumps({"seeds": seeds, "aggregate": agg,
                                "per_seed": per_seed, "pairwise_kappa": pairwise_kappa(gold)}, indent=1))
     print(f"\nwrote {out}")

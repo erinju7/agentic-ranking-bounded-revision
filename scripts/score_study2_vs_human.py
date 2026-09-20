@@ -3,10 +3,10 @@ NO API. Reports 3-way accuracy and Cohen's kappa (system-vs-human) for each vari
 RQ2-relevant intervention analyses: (i) on pairs where DEP != IND, does DEP move TOWARD the human
 label? (ii) on pairs the 2b reviewer REVISEd, does the final move TOWARD the human label?
 """
-import json, ast, csv, math
+import os, json, ast, csv, math
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
-HUMAN_CSV = Path("/Users/macbook/Desktop/annotation_sheet.csv")
+HUMAN_CSV = Path(os.environ.get("STUDY2_ANNOTATION_CSV", ROOT/"data"/"study2_validation"/"annotation_sheet.csv"))
 
 NORM = {"match": "match", "no match": "no_match", "no_match": "no_match", "borderline": "borderline"}
 def norm(s): return NORM[str(s).strip().lower()]
@@ -24,9 +24,9 @@ def dec(field):  # parse stringified dict, return decision
     return d.get("decision")
 
 # ---- system decisions ----
-base = {(x["proposal"], x["call"]): x for x in json.load(open(ROOT/"results/james_validation/pairs.json"))}
-dep = {(x["proposal"], x["call"]): x for x in json.load(open(ROOT/"results/james_validation/study2a_dependency/pairs.json"))}
-rev = {(x["proposal"], x["call"]): x for x in json.load(open(ROOT/"results/james_validation/study2b_review/pairs.json"))}
+base = {(x["proposal"], x["call"]): x for x in json.load(open(ROOT/"results/study2_validation/pairs.json"))}
+dep = {(x["proposal"], x["call"]): x for x in json.load(open(ROOT/"results/study2_validation/study2a_dependency/pairs.json"))}
+rev = {(x["proposal"], x["call"]): x for x in json.load(open(ROOT/"results/study2_validation/study2b_review/pairs.json"))}
 
 variants = {}
 for k in human:

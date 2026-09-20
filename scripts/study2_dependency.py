@@ -1,10 +1,10 @@
-"""Study 2a: Information Dependency (James proposal--funding matching). Two systems that
+"""Study 2a: Information Dependency (proposal--funding matching). Two systems that
 differ ONLY in what the Alignment Agent consumes:
   DEP: Alignment reads ONLY the two structured representations (reasons over relationships).
   IND: Alignment reads the RAW proposal + raw call directly, NOT the structured reps.
 Everything else identical: same docs, same backbone (gemini-flash-latest, temp 0), same
 Proposal/Call agents, identical Final Judge (proposal+call+both summaries+alignment). Prompts
-reused verbatim from james_decomposed.py. No reviewer/debate/reflection/retrieval/optimisation.
+reused verbatim from study2_decomposed.py. No reviewer/debate/reflection/retrieval/optimisation.
 Exploratory: no ground truth -> no accuracy claims. Reports distributions, changes, cost.
 """
 from __future__ import annotations
@@ -13,8 +13,8 @@ from pathlib import Path
 import os, argparse
 from datetime import datetime, timezone
 from rq2_core import make_client, extract_json_object, usage_cost_usd
-from james_decomposed import p_agent1, p_agent2, p_agent3, p_agent4, clamp
-from james_match import client_for
+from study2_decomposed import p_agent1, p_agent2, p_agent3, p_agent4, clamp
+from study2_match import client_for
 
 ROOT = Path(__file__).resolve().parents[1]
 def load_env():
@@ -24,9 +24,9 @@ def load_env():
                 l=l.strip()
                 if l and not l.startswith("#") and "=" in l:
                     k,v=l.split("=",1); os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
-DOCS = json.loads((ROOT/"data"/"james_validation"/"docs.json").read_text())
-OUT = ROOT/"results"/"james_validation"/"study2a_dependency"; OUT.mkdir(parents=True, exist_ok=True)
-MODEL="gemini-flash-latest"; PRICE_KEY=MODEL; PROP_CAP,CALL_CAP=7000,5000
+DOCS = json.loads((ROOT/"data"/"study2_validation"/"docs.json").read_text())
+OUT = ROOT/"results"/"study2_validation"/"study2a_dependency"; OUT.mkdir(parents=True, exist_ok=True)
+MODEL="gemini-flash-latest"; PRICE_KEY=MODEL; PROP_CAP, CALL_CAP = (int(os.environ.get("PROP_CAP","0")) or 10**9), (int(os.environ.get("CALL_CAP","0")) or 10**9)
 PROPS=list(DOCS["proposals"]); CALLS=list(DOCS["calls"])
 DIMS=["thematic_fit","mechanistic_fit","technology_fit","stage_fit","constraint_fit"]
 
@@ -140,7 +140,7 @@ def main():
     (OUT/"summary.json").write_text(json.dumps(summary,indent=1,ensure_ascii=False))
 
     # comparison table
-    md=["# Study 2a Information Dependency — IND vs DEP (James matching). EXPLORATORY, no ground truth.","",
+    md=["# Study 2a Information Dependency — IND vs DEP (proposal--funding matching). EXPLORATORY, no ground truth.","",
         "| Proposal | Call | IND score/dec | DEP score/dec | ΔScore(D-I) | Decision change | IND dims (t/m/te/s/c) | DEP dims |",
         "|---|---|---|---|---|---|---|---|"]
     for x in pairs:

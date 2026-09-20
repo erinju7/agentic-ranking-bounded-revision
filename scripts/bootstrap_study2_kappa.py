@@ -3,7 +3,7 @@ Reports kappa(non-expert second annotation vs expert gold), kappa(single-pass A
 system vs expert gold), and their difference. n=36 gives very wide intervals, so
 0.62 (system) and 0.49 (reference) cannot be distinguished. Reproduces the CIs
 quoted in Study 2 (results section 4.3)."""
-import csv, json, random
+import os, csv, json, random
 from pathlib import Path
 random.seed(42)
 CATS=["no_match","borderline","match"]; IDX={c:i for i,c in enumerate(CATS)}
@@ -17,9 +17,9 @@ def wkappa(pairs):
     pe=sum(W[i][j]*ra[i]*ca[j]/n for i in range(3) for j in range(3))/n
     return 1-po/pe if pe else 0.0
 ROOT=Path(__file__).resolve().parents[1]
-gold={(r["proposal_id"],r["call_id"]):norm(r["label"]) for r in csv.DictReader(open("/Users/macbook/Desktop/gold_standard_JDR.csv"))}
+gold={(r["proposal_id"],r["call_id"]):norm(r["label"]) for r in csv.DictReader(open(Path(os.environ.get("STUDY2_GOLD_CSV", ROOT/"data"/"study2_validation"/"expert_labels.csv"))))}
 ne={(r["proposal_id"],r["call_id"]):norm(list(r.values())[-1]) for r in csv.DictReader(open(ROOT/"analysis/study2_annotation/annotation_sheet_FILLED.csv"))}
-res=json.loads((ROOT/"results/james_validation/listwise/claude-haiku-4-5-20251001_rubric/listwise_results.json").read_text())
+res=json.loads((ROOT/"results/study2_validation/listwise/claude-haiku-4-5-20251001_rubric/listwise_results.json").read_text())
 Asys={(rr["proposal"],c):norm(g) for rr in res for c,g in rr["A"]["grades"].items()}
 tri=[(gold[k],ne[k],Asys[k]) for k in gold if k in ne and k in Asys]
 kne=wkappa([(e,n) for e,n,a in tri]); ka=wkappa([(e,a) for e,n,a in tri])

@@ -1,10 +1,10 @@
-"""James proposal--funding-call matching: EXPLORATORY UNLABELED validation.
+"""proposal--funding-call matching: EXPLORATORY UNLABELED validation.
 Systems (frozen prompts/logic, same design principle as BRIGHT):
   A single-pass matcher; B concept-guided matcher; D anchor-and-edit matcher.
 For all 6x6=36 (proposal,call) pairs, saves A/B/D score+decision+rationale, whether B and D
 changed the baseline, and per-call latency/tokens/cost. NO Accuracy/Precision/Recall/F1/AUROC/
 McNemar -- there is no expert ground truth. LLM outputs are NOT gold. Produces a 6x6 review
-matrix for James to label later.
+matrix for the expert to label later.
 """
 from __future__ import annotations
 import os, json, time, statistics as st
@@ -20,8 +20,8 @@ for _e in (ROOT/".env", ROOT.parent/".env"):
             _l = _l.strip()
             if _l and not _l.startswith("#") and "=" in _l:
                 _k, _v = _l.split("=", 1); os.environ.setdefault(_k.strip(), _v.strip().strip('"').strip("'"))
-DOCS = json.loads((ROOT/"data"/"james_validation"/os.environ.get("DOCS_FILE","docs_full.json")).read_text())
-OUT = ROOT/"results"/"james_validation"; OUT.mkdir(parents=True, exist_ok=True)
+DOCS = json.loads((ROOT/"data"/"study2_validation"/os.environ.get("DOCS_FILE","docs_full.json")).read_text())
+OUT = ROOT/"results"/"study2_validation"; OUT.mkdir(parents=True, exist_ok=True)
 MODEL = "gemini-flash-latest"
 # Character caps on proposal/call text. Default 0 -> no truncation: the reported
 # configuration sends the complete document text (longest proposal ~28k chars,
@@ -31,7 +31,7 @@ CALL_CAP = int(os.environ.get("CALL_CAP", "0")) or 10**9
 
 
 class RawClaudeJSON:
-    """Schema-free Claude caller for the James pipeline: unlike rq2_core.AnthropicClient it does
+    """Schema-free Claude caller for the Study 2 pipeline: unlike rq2_core.AnthropicClient it does
     NOT force the ranked_call_labels output schema, so the free-form concept/alignment/grade JSON
     works. Same generate()/last_usage_metadata surface. Records the served model version and a
     price_key (dated snapshots strip to their base id for cost lookup)."""
@@ -217,12 +217,12 @@ def main():
     (OUT/"matrix_D_score.csv").write_text(matrix(lambda p,c: idx[(p,c)]["D"]["match_score"]))
     (OUT/"matrix_D_action.csv").write_text(matrix(lambda p,c: idx[(p,c)]["D"]["action"]))
 
-    # human review table (markdown) for James to label later
-    md=["# James proposal--funding-call matching — exploratory (UNLABELED). LLM outputs are NOT gold.",
+    # human review table (markdown) for the expert to label later
+    md=["# proposal--funding-call matching — exploratory (UNLABELED). LLM outputs are NOT gold.",
         "",
-        "Score = LLM match_score (0-100); dec = match/no_match; D.act = keep/edit. `label` column is blank for James.",
+        "Score = LLM match_score (0-100); dec = match/no_match; D.act = keep/edit. `label` column is blank for the expert.",
         "",
-        "| Proposal | Call | A score/dec | B score/dec | D act | D score/dec | Bchg | Dchg | James label |",
+        "| Proposal | Call | A score/dec | B score/dec | D act | D score/dec | Bchg | Dchg | expert label |",
         "|---|---|---|---|---|---|---|---|---|"]
     for p in pairs:
         md.append(f"| {p['proposal']} | {p['call']} | {p['A']['match_score']}/{p['A']['decision']} "
@@ -243,7 +243,7 @@ def main():
                      "D_kept_baseline":36-nEdit},
         "cost":{s:agg(s) for s in ["A","B","D"]}}
     (OUT/"summary.json").write_text(json.dumps(summary,indent=1))
-    print("=== James matching (exploratory, UNLABELED, n=36 pairs) ===")
+    print("=== proposal--funding matching (exploratory, UNLABELED, n=36 pairs) ===")
     print(f"  B changed baseline: {nB}/36 | D edited: {nEdit}/36 (kept {36-nEdit}) | D decision flips: {nFlip}/36")
     print("  cost/behaviour:")
     for s in ["A","B","D"]:

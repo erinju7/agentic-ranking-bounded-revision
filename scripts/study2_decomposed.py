@@ -4,7 +4,7 @@ Separate from BRIGHT (unmodified) and NOT anchor-and-edit. Pipeline:
   Agent2 Call Understanding (call only)          -> structured summary (cached per call)
   Agent3 Alignment (ONLY the two summaries)      -> dimension fits + strengths/mismatches
   Agent4 Final Decision (docs + summaries + alignment) -> match_score/decision/confidence
-Baseline = System A (single-pass) reused from results/james_validation/pairs.json (NOT rerun).
+Baseline = System A (single-pass) reused from results/study2_validation/pairs.json (NOT rerun).
 No ground truth -> NO Accuracy/Precision/Recall/F1. Reports score/decision/rationale changes,
 dimension analysis, cost/latency/tokens. Frozen exploratory external validation.
 """
@@ -14,7 +14,7 @@ from pathlib import Path
 import os, argparse
 from datetime import datetime, timezone
 from rq2_core import make_client, extract_json_object, usage_cost_usd
-from james_match import client_for
+from study2_match import client_for
 
 ROOT = Path(__file__).resolve().parents[1]
 def load_env():
@@ -24,10 +24,10 @@ def load_env():
                 l=l.strip()
                 if l and not l.startswith("#") and "=" in l:
                     k,v=l.split("=",1); os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
-DOCS = json.loads((ROOT/"data"/"james_validation"/"docs.json").read_text())
-BASE = {(p["proposal"],p["call"]):p["A"] for p in json.loads((ROOT/"results"/"james_validation"/"pairs.json").read_text())}
-OUT = ROOT/"results"/"james_validation"/"decomposed"; OUT.mkdir(parents=True, exist_ok=True)
-MODEL="gemini-flash-latest"; PRICE_KEY=MODEL; PROP_CAP,CALL_CAP=7000,5000
+DOCS = json.loads((ROOT/"data"/"study2_validation"/"docs.json").read_text())
+BASE = {(p["proposal"],p["call"]):p["A"] for p in json.loads((ROOT/"results"/"study2_validation"/"pairs.json").read_text())}
+OUT = ROOT/"results"/"study2_validation"/"decomposed"; OUT.mkdir(parents=True, exist_ok=True)
+MODEL="gemini-flash-latest"; PRICE_KEY=MODEL; PROP_CAP, CALL_CAP = (int(os.environ.get("PROP_CAP","0")) or 10**9), (int(os.environ.get("CALL_CAP","0")) or 10**9)
 PROPS=list(DOCS["proposals"]); CALLS=list(DOCS["calls"])
 
 
@@ -152,7 +152,7 @@ def main():
     for d in DIMS: (OUT/f"matrix_{d}.csv").write_text(mat(lambda p,c: idx[(p,c)]["alignment"][d]))
 
     # comparison table (baseline vs decomposed), all 36 pairs
-    md=["# James matching — Baseline (A) vs Decomposed Agentic Matcher (E). EXPLORATORY, no ground truth.","",
+    md=["# proposal--funding matching — Baseline (A) vs Decomposed Agentic Matcher (E). EXPLORATORY, no ground truth.","",
         "| Proposal | Call | A score/dec | E score/dec/conf | ΔScore | Decision change | Alignment (them/mech/tech/stage/constr) |",
         "|---|---|---|---|---|---|---|"]
     for x in pairs:

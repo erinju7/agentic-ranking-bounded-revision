@@ -1,4 +1,4 @@
-"""Build a BLINDED ground-truth annotation package for Study 2 (proposal--funding matching).
+"""Build a BLINDED expert-reference annotation package for Study 2 (proposal--funding matching).
 Exposes ONLY the proposal and call texts -- no System-A/E/DEP/IND/reviewer/judge outputs, no scores,
 no decisions -- so human labels are not contaminated by the model. 6 proposals x 6 calls = 36 pairs.
 Outputs to analysis/study2_annotation/: rubric, readable sheet (full texts + 6x6 grid), CSV for
@@ -9,11 +9,11 @@ import json, csv
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT/"analysis"/"study2_annotation"; OUT.mkdir(parents=True, exist_ok=True)
-d = json.loads((ROOT/"data"/"james_validation"/"docs.json").read_text())
+d = json.loads((ROOT/"data"/"study2_validation"/"docs.json").read_text())
 props = d["proposals"]; calls = d["calls"]
 PIDS = list(props); CIDS = list(calls)
 
-RUBRIC = """# Study 2 --- ground-truth annotation rubric (proposal <-> funding call)
+RUBRIC = """# Study 2 --- expert-reference annotation rubric (proposal <-> funding call)
 
 **Task.** For each (proposal, call) pair, judge whether the *proposal* is a suitable match for the
 *funding call*'s stated interests, using ONLY the two documents. Assign one label:
@@ -54,7 +54,7 @@ PROTOCOL = """# Study 2 --- annotation protocol
   inter-annotator agreement (Cohen's kappa) as-is, without adjudicating it away.
 - **Scope.** 36 pairs = 6 proposals x 6 calls. Read the 6 proposals and 6 calls once (Section A/B of
   the readable sheet), then fill the 36-row grid.
-- **After labelling.** The completed CSV becomes the ground truth. We then score the reference-backbone
+- **After labelling.** The completed CSV becomes the expert reference. We then score the reference-backbone
   Study 2 outputs against it (does DEP vs IND, and the reviewer's REVISE actions, move decisions
   toward the human label?). Only if a real accuracy effect appears is a multi-backbone panel run.
 - **No relabelling to fit results.** Labels are frozen before any scoring; disagreements are reported,
