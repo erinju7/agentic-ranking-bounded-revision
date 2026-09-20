@@ -3,7 +3,7 @@
 *.key
 
 # proprietary / non-public data (Study 2 partnering dataset, expert labels)
-data/james_validation/
+data/study2_validation/
 data/**/docs*.json
 gold_standard_*.csv
 **/annotation_sheet*
